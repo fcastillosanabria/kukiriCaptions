@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kukiri Captions</title>
+
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+
+  <body>
+    <div class="d-flex vh-100">
+      <!-- 🎨 SIDEBAR IZQUIERDO (ÍCONOS) -->
+      <aside class="sidebar-left">
+        <div class="nav-item">
+          <button class="nav-link" data-panel="ai-tools">✨</button>
+          <span class="nav-label">AI Tools</span>
+        </div>
+
+        <div class="nav-item">
+          <button class="nav-link" data-panel="script">📄</button>
+          <span class="nav-label">subtitles</span>
+        </div>
+
+        <div class="nav-item">
+          <button class="nav-link active" data-panel="video">🎬</button>
+          <span class="nav-label">Video</span>
+        </div>
+
+        <div class="nav-item">
+          <button class="nav-link" data-panel="audio">🎵</button>
+          <span class="nav-label">Audio</span>
+        </div>
+
+        <div class="nav-item">
+          <button class="nav-link" data-panel="texto">🔠</button>
+          <span class="nav-label">Texto</span>
+        </div>
+      </aside>
+
+      <!-- 📦 PANEL DE CONTENIDO -->
+      <aside class="content-panel">
+        <!-- VIDEO PANEL -->
+        <div id="video-panel" class="panel-content">
+          <div class="section-header">Video</div>
+
+          <div class="d-flex gap-2 mb-4">
+            <button class="btn-upload" onclick="videoInput.click()">
+              ⬆️ Upload
+            </button>
+          </div>
+
+          <div class="asset-library-header">
+            <div class="asset-library-title">Asset Library +</div>
+            <a href="#" class="view-all">View all →</a>
+          </div>
+
+          <div class="asset-tabs">
+            <button class="asset-tab active">All</button>
+            <button class="asset-tab">Videos</button>
+          </div>
+
+          <div id="video-list"></div>
+
+          <input type="file" id="videoInput" class="d-none" accept="video/*" />
+        </div>
+
+        <!-- SUBTITLES PANEL (Oculto por defecto) -->
+        <div id="subtitles-panel" class="panel-content d-none">
+          <div class="section-header">Subtítulos</div>
+
+          <button class="btn-generate w-100 mb-3" onclick="generar()">
+            🧠 Generar subtítulos
+          </button>
+
+          <div
+            id="editor"
+            class="border rounded p-2"
+            style="height: 600px; overflow-y: auto; background: #f8f9fa"
+          >
+            <!-- Editor de subtítulos -->
+          </div>
+        </div>
+
+        <!-- TEXTO PANEL -->
+        <div id="stylesSubtitles-panel" class="panel-content d-none">
+          <div class="section-header">Texto</div>
+
+          <button class="btn w-100 mb-3">Estilos de subtítulos</button>
+        </div>
+
+        <!-- AUDIO PANEL -->
+        <div id="music-panel" class="panel-content d-none">
+          <h5 class="fw-semibold mb-3">Audio</h5>
+
+          <!-- Upload -->
+          <label class="btn btn-light border w-100 mb-3">
+            ⬆ Upload music
+            <input type="file" id="audioInput" accept="audio/*" hidden />
+          </label>
+
+          <!-- Player -->
+          <div class="card p-3 d-none" id="audioControls">
+            <div class="small fw-medium mb-2">Background music</div>
+
+            <!-- Volume -->
+            <label class="form-label small">Volume</label>
+            <input
+              type="range"
+              class="form-range"
+              min="0"
+              max="1"
+              step="0.01"
+              value="0.3"
+              id="musicVolume"
+            />
+          </div>
+
+          <!-- Music list -->
+          <div id="musicList" class="d-flex flex-column gap-2 mb-3"></div>
+
+          <!-- Hidden audio -->
+          <audio id="bgMusic"></audio>
+        </div>
+      </aside>
+
+      <!-- 🎬 PREVIEW CENTRAL -->
+      <main
+        class="flex-grow-1 d-flex justify-content-center align-items-center bg-light"
+      >
+        <div id="preview">
+          <video id="video" controls></video>
+          <canvas id="canvas" width="1080" height="1920"></canvas>
+        </div>
+      </main>
+
+      <!-- 🎨 PANEL DERECHO (ESTILOS) -->
+      <aside class="content-panel">
+        <div class="section-header">🎨 Estilos</div>
+
+        <div class="mb-3">
+          <label class="form-label">Color texto</label>
+          <input
+            type="color"
+            class="form-control form-control-color w-100"
+            value="#ffffff"
+            oninput="cambiarEstilo('texto', this.value)"
+          />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Color borde</label>
+          <input
+            type="color"
+            class="form-control form-control-color w-100"
+            value="#000000"
+            oninput="cambiarEstilo('borde', this.value)"
+          />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Fondo normal</label>
+          <input
+            type="color"
+            class="form-control form-control-color w-100"
+            value="#e1e1e1"
+            oninput="cambiarFondoNormal(this.value)"
+          />
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label">Fondo palabra clave</label>
+          <input
+            type="color"
+            class="form-control form-control-color w-100"
+            value="#ffd700"
+            oninput="cambiarFondoClave(this.value)"
+          />
+        </div>
+      </aside>
+    </div>
+
+    <script src="/static/javascript.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

@@ -1,0 +1,6 @@
+flask
+moviepy
+openai-whisper
+torch
+numpy
+Pillow

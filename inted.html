@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kukiri Captions</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+        }
+
+        #preview {
+            position: relative;
+            width: 360px;
+            aspect-ratio: 9 / 16;
+            margin: auto;
+            background: #000;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        video,
+        canvas {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+
+        canvas {
+            pointer-events: none;
+        }
+
+        .sidebar-left {
+            width: 80px;
+            background: #f8f9fa;
+            border-right: 1px solid #dee2e6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px 0;
+            gap: 20px;
+        }
+
+        .sidebar-left .nav-item {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .sidebar-left .nav-link {
+            width: 48px;
+            height: 48px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            background: transparent;
+            border: none;
+            color: #6c757d;
+            transition: all 0.2s;
+        }
+
+        .sidebar-left .nav-link:hover {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .sidebar-left .nav-link.active {
+            background: #6366f1;
+            color: white;
+        }
+
+        .sidebar-left .nav-label {
+            font-size: 11px;
+            color: #6c757d;
+            font-weight: 500;
+        }
+
+        .sidebar-left .nav-link.active+.nav-label {
+            color: #6366f1;
+        }
+
+        .content-panel {
+            width: 320px;
+            background: white;
+            border-right: 1px solid #dee2e6;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .asset-card {
+            border-radius: 8px;
+            overflow: hidden;
+            background: #000;
+            aspect-ratio: 16 / 9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            transition: transform 0.2s;
+            position: relative;
+        }
+
+        .asset-card:hover {
+            transform: scale(1.02);
+        }
+
+        .asset-duration {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .btn-generate {
+            background: #6366f1;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: background 0.2s;
+        }
+
+        .btn-generate:hover {
+            background: #5558e3;
+        }
+
+        .btn-upload {
+            background: white;
+            border: 1px solid #dee2e6;
+            color: #495057;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .btn-upload:hover {
+            background: #f8f9fa;
+            border-color: #adb5bd;
+        }
+
+        .section-header {
+            font-size: 18px;
+            font-weight: 600;
+            color: #212529;
+            margin-bottom: 16px;
+        }
+
+        .asset-library-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .asset-library-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #212529;
+        }
+
+        .view-all {
+            color: #6c757d;
+            text-decoration: none;
+            font-size: 14px;
+        }
+
+        .view-all:hover {
+            color: #495057;
+        }
+
+        .asset-tabs {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid #dee2e6;
+            padding-bottom: 8px;
+        }
+
+        .asset-tab {
+            background: none;
+            border: none;
+            color: #6c757d;
+            font-weight: 500;
+            font-size: 14px;
+            padding: 4px 0;
+            cursor: pointer;
+        }
+
+        .asset-tab.active {
+            color: #212529;
+            border-bottom: 2px solid #6366f1;
+        }
+
+        .asset-name {
+            font-size: 13px;
+            color: #495057;
+            margin-top: 8px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="d-flex vh-100">
+        <!-- 🎨 SIDEBAR IZQUIERDO (ÍCONOS) -->
+        <aside class="sidebar-left">
+            <div class="nav-item">
+                <button class="nav-link" data-panel="ai-tools">
+                    ✨
+                </button>
+                <span class="nav-label">AI Tools</span>
+            </div>
+
+            <div class="nav-item">
+                <button class="nav-link" data-panel="script">
+                    📄
+                </button>
+                <span class="nav-label">subtitles</span>
+            </div>
+
+            <div class="nav-item">
+                <button class="nav-link active" data-panel="video">
+                    🎬
+                </button>
+                <span class="nav-label">Video</span>
+            </div>
+
+            <div class="nav-item">
+                <button class="nav-link" data-panel="audio">
+                    🎵
+                </button>
+                <span class="nav-label">Audio</span>
+            </div>
+
+            <div class="nav-item">
+                <button class="nav-link" data-panel="texto">
+                    🔠
+                </button>
+                <span class="nav-label">Texto</span>
+            </div>
+        </aside>
+
+        <!-- 📦 PANEL DE CONTENIDO -->
+        <aside class="content-panel">
+            <!-- VIDEO PANEL -->
+            <div id="video-panel" class="panel-content">
+                <div class="section-header">Video</div>
+
+                <div class="d-flex gap-2 mb-4">
+
+                    <button class="btn-upload">
+                        ⬆️ Upload
+                    </button>
+                </div>
+
+                <div class="asset-library-header">
+                    <div class="asset-library-title">Asset Library +</div>
+                    <a href="#" class="view-all">View all →</a>
+                </div>
+
+                <div class="asset-tabs">
+                    <button class="asset-tab active">All</button>
+                    <button class="asset-tab">Videos</button>
+                </div>
+
+                <div id="video-list">
+
+                </div>
+
+                <input type="file" id="videoInput" class="d-none" accept="video/*">
+            </div>
+
+            <!-- SUBTITLES PANEL (Oculto por defecto) -->
+            <div id="subtitles-panel" class="panel-content d-none">
+                <div class="section-header">Subtítulos</div>
+
+                <button class="btn-generate w-100 mb-3" onclick="generar()">
+                    🧠 Generar subtítulos
+                </button>
+
+                <div id="editor" class="border rounded p-2"
+                    style="height: 300px; overflow-y: auto; background: #f8f9fa;">
+                    <!-- Editor de subtítulos -->
+                </div>
+            </div>
+
+            <!-- SUBTITLES PANEL (Oculto por defecto) -->
+            <div id="stylesSubtitles-panel" class="panel-content d-none">
+                <div class="section-header">Texto</div>
+
+                <button class="btn w-100 mb-3">
+                    Estilos de subtítulos
+                </button>
+
+
+            </div>
+
+            <div id="music-panel" class="panel-content d-none">
+                <h5 class="fw-semibold mb-3">Audio</h5>
+
+                <!-- Upload -->
+                <label class="btn btn-light border w-100 mb-3">
+                    ⬆ Upload music
+                    <input type="file" id="audioInput" accept="audio/*" hidden>
+                </label>
+
+                <!-- Player -->
+                <div class="card p-3 d-none" id="audioControls">
+
+                    <div class="small fw-medium mb-2">Background music</div>
+
+                    <!-- Volume -->
+                    <label class="form-label small">Volume</label>
+                    <input type="range" class="form-range" min="0" max="1" step="0.01" value="0.3" id="musicVolume">
+
+                </div>
+
+                <!-- Hidden audio -->
+                <audio id="bgMusic"></audio>
+
+            </div>
+        </aside>
+
+        <!-- 🎬 PREVIEW CENTRAL -->
+        <main class="flex-grow-1 d-flex justify-content-center align-items-center bg-light">
+            <div id="preview">
+                <video id="video" controls></video>
+                <canvas id="canvas" width="1080" height="1920"></canvas>
+            </div>
+        </main>
+
+        <!-- 🎨 PANEL DERECHO (ESTILOS) -->
+        <aside class="content-panel">
+            <div class="section-header">🎨 Estilos</div>
+
+            <div class="mb-3">
+                <label class="form-label">Color texto</label>
+                <input type="color" class="form-control form-control-color w-100" value="#ffffff"
+                    oninput="cambiarEstilo('texto', this.value)">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Color borde</label>
+                <input type="color" class="form-control form-control-color w-100" value="#000000"
+                    oninput="cambiarEstilo('borde', this.value)">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Fondo normal</label>
+                <input type="color" class="form-control form-control-color w-100" value="#e1e1e1"
+                    oninput="cambiarFondoNormal(this.value)">
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Fondo palabra clave</label>
+                <input type="color" class="form-control form-control-color w-100" value="#ffd700"
+                    oninput="cambiarFondoClave(this.value)">
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        // ============== VARIABLES GLOBALES ==============
+        let estilos = {
+            texto: "#ffffff",
+            borde: "#000000",
+            fondoNormal: "rgba(225,225,225,0.9)",
+            fondoClave: "rgba(255,215,0,0.9)",
+        };
+        let bloques = [];
+        let bloqueActivo = null;
+        let editando = false;
+
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+        const video = document.getElementById("video");
+
+        const bgMusic = document.getElementById("bgMusic");
+        const audioInput = document.getElementById("audioInput");
+        const volumeControl = document.getElementById("musicVolume");
+        const audioControls = document.getElementById("audioControls");
+
+        // Upload music
+        audioInput.addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            bgMusic.src = URL.createObjectURL(file);
+            bgMusic.loop = true;
+            bgMusic.volume = 0.3;
+
+            audioControls.classList.remove("d-none");
+        });
+
+        // ============== GENERAR SUBTÍTULOS ==============
+        async function generar() {
+            const file = document.getElementById("videoInput").files[0];
+            if (!file) {
+                alert('Por favor selecciona un video primero');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("video", file);
+
+            const res = await fetch("/transcribir", {
+                method: "POST",
+                body: formData,
+            });
+
+            const data = await res.json();
+            bloques = data.bloques;
+
+            video.src = URL.createObjectURL(file);
+            renderEditor();
+
+            // Cambiar a panel de subtítulos
+            document.querySelectorAll('.sidebar-left .nav-link').forEach(b => b.classList.remove('active'));
+            document.querySelector('[data-panel="script"]').classList.add('active');
+            document.getElementById('video-panel').classList.add('d-none');
+            document.getElementById('subtitles-panel').classList.add('d-none');
+            document.getElementById('stylesSubtitles-panel').classList.add('d-none');
+            document.getElementById('music-panel').classList.add('d-none');
+        }
+
+        // ============== EDITOR DE SUBTÍTULOS ==============
+        function renderEditor() {
+            const editor = document.getElementById("editor");
+            editor.innerHTML = "";
+
+            bloques.forEach((b, i) => {
+                editor.innerHTML += `
+                    <textarea class="form-control mb-2"
+                        style="min-height: 60px;"
+                        onfocus="seleccionarBloque(${i})"
+                        oninput="editarBloque(${i}, this.value)">${b.words.map((w) => w.word).join(" ")}</textarea>
+                `;
+            });
+        }
+
+        function editarBloque(i, texto) {
+            editando = true;
+
+            const palabras = texto.trim().split(/\s+/);
+            bloques[i].words = palabras.map(p => ({
+                word: p,
+                animStart: null
+            }));
+
+            bloqueActivo = bloques[i];
+        }
+
+        function seleccionarBloque(i) {
+            bloqueActivo = bloques[i];
+            editando = true;
+
+            bloqueActivo.words.forEach(w => w.animStart = null);
+            video.currentTime = bloques[i].start;
+        }
+
+        // ============== ESTILOS ==============
+        function cambiarEstilo(tipo, valor) {
+            estilos[tipo] = valor;
+            if (bloqueActivo) {
+                requestAnimationFrame(() => dibujarBloque(bloqueActivo.words));
+            }
+        }
+
+        function cambiarFondoNormal(hex) {
+            estilos.fondoNormal = hexToRGBA(hex, 0.9);
+            if (bloqueActivo) dibujarBloque(bloqueActivo.words);
+        }
+
+        function cambiarFondoClave(hex) {
+            estilos.fondoClave = hexToRGBA(hex, 0.9);
+            if (bloqueActivo) dibujarBloque(bloqueActivo.words);
+        }
+
+        function hexToRGBA(hex, alpha) {
+            const r = parseInt(hex.slice(1, 3), 16);
+            const g = parseInt(hex.slice(3, 5), 16);
+            const b = parseInt(hex.slice(5, 7), 16);
+            return `rgba(${r},${g},${b},${alpha})`;
+        }
+
+        // ============== ANIMACIÓN ==============
+        function popScale(t) {
+            if (t < 0.5) {
+                return 0.85 + (t / 0.5) * 0.25; // 0.85 → 1.10
+            } else {
+                return 1.10 - ((t - 0.5) / 0.5) * 0.10; // 1.10 → 1.0
+            }
+        }
+
+        function loopAnimacion() {
+            if (bloqueActivo) {
+                dibujarBloque(bloqueActivo.words);
+            }
+            requestAnimationFrame(loopAnimacion);
+        }
+
+        // ============== SINCRONIZACIÓN VIDEO ==============
+        video.ontimeupdate = () => {
+            if (editando) return;
+
+            const t = video.currentTime;
+            const encontrado = bloques.find(b => t >= b.start && t <= b.end);
+
+            if (encontrado && bloqueActivo !== encontrado) {
+                bloqueActivo = encontrado;
+                bloqueActivo.words.forEach(w => w.animStart = null);
+            }
+        };
+
+        video.onplay = () => (editando = false);
+
+        // Sync play / pause
+        video.addEventListener("play", () => {
+            if (bgMusic.src) bgMusic.play();
+        });
+
+        video.addEventListener("pause", () => {
+            bgMusic.pause();
+        });
+
+        video.addEventListener("seeking", () => {
+            bgMusic.currentTime = video.currentTime;
+        });
+
+        // Sync end
+        video.addEventListener("ended", () => {
+            bgMusic.pause();
+            bgMusic.currentTime = 0;
+        });
+
+        // Volume control
+        volumeControl.addEventListener("input", (e) => {
+            bgMusic.volume = e.target.value;
+        });
+
+        // ============== DIBUJO EN CANVAS ==============
+        function dibujarBloque(words) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            const margenX = 80;
+            const maxWidth = canvas.width - margenX * 2;
+            let x = margenX;
+            let y = canvas.height * 0.75;
+
+            const clave = words.reduce((a, b) =>
+                b.word.length > a.word.length ? b : a
+            );
+
+            const now = performance.now();
+
+            words.forEach((w) => {
+                const grande = w === clave;
+
+                if (!w.animStart) w.animStart = now;
+
+                const animDuration = 120;
+                const elapsed = now - w.animStart;
+                const progress = Math.min(elapsed / animDuration, 1);
+                const scale = popScale(progress);
+
+                const baseSize = grande ? 80 : 60;
+                const size = baseSize;
+
+                ctx.font = `bold ${size}px Arial`;
+                const wText = ctx.measureText(w.word).width;
+
+                if (x + wText > maxWidth) {
+                    x = margenX;
+                    y += size + 30;
+                }
+
+                ctx.save();
+
+                ctx.translate(x + wText / 2, y - size / 2);
+                ctx.scale(scale, scale);
+                ctx.translate(-(x + wText / 2), -(y - size / 2));
+
+                const fondo = grande ? estilos.fondoClave : estilos.fondoNormal;
+
+                ctx.fillStyle = fondo;
+                ctx.fillRect(x - 12, y - size, wText + 24, size + 24);
+
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = estilos.borde;
+                ctx.strokeText(w.word, x, y);
+
+                ctx.fillStyle = estilos.texto;
+                ctx.fillText(w.word, x, y);
+
+                ctx.restore();
+
+                x += wText + 25;
+            });
+        }
+
+        // ============== NAVEGACIÓN UI ==============
+        document.querySelectorAll('.sidebar-left .nav-link').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.sidebar-left .nav-link').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                const panel = btn.dataset.panel;
+                document.querySelectorAll('.panel-content').forEach(p => p.classList.add('d-none'));
+
+                if (panel === 'video') {
+                    document.getElementById('video-panel').classList.remove('d-none');
+                } else if (panel === 'texto') {
+                    document.getElementById('stylesSubtitles-panel').classList.remove('d-none');
+                }
+                else if (panel === 'audio') {
+                    document.getElementById('music-panel').classList.remove('d-none');
+                }
+                else if (panel === 'script') {
+                    document.getElementById('subtitles-panel').classList.remove('d-none');
+                }
+            });
+        });
+
+        // Upload button
+        document.querySelector('.btn-upload').addEventListener('click', () => {
+            document.getElementById('videoInput').click();
+        });
+
+        // Handle video upload
+        document.getElementById('videoInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                video.src = URL.createObjectURL(file);
+                video.load();
+
+                // Actualizar preview en asset library
+                document.querySelector('.asset-card').innerHTML = `
+                    <span class="asset-duration">00:10</span>
+                `;
+                document.querySelector('.asset-name').textContent = file.name;
+            }
+        });
+
+        // Iniciar loop de animación
+        requestAnimationFrame(loopAnimacion);
+
+        // ============== AUDIO DE FONDO ==============
+        // Upload audio button
+        document.getElementById('uploadAudioBtn').addEventListener('click', () => {
+            document.getElementById('audioInput').click();
+        });
+
+        // Handle audio upload
+        document.getElementById('audioInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                // Crear elemento de audio
+                if (backgroundAudio) {
+                    backgroundAudio.pause();
+                    backgroundAudio = null;
+                }
+
+                backgroundAudio = new Audio();
+                backgroundAudio.src = URL.createObjectURL(file);
+                backgroundAudio.loop = true; // Loop automático
+                backgroundAudio.volume = 0.5; // Volumen inicial 50%
+
+                // Mostrar en la lista
+                const audioList = document.getElementById('audio-list');
+                audioList.innerHTML = `
+                    <div class="border rounded p-2 mb-2 bg-light">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <div class="fw-bold" style="font-size: 13px;">🎵 ${file.name}</div>
+                                <div class="text-muted" style="font-size: 11px;">Audio de fondo</div>
+                            </div>
+                            <button class="btn btn-sm btn-danger" onclick="removeBackgroundAudio()">
+                                🗑️
+                            </button>
+                        </div>
+                    </div>
+                `;
+
+                // Mostrar controles de volumen
+                document.getElementById('audio-controls').classList.remove('d-none');
+
+                // Sincronizar con el video
+                video.addEventListener('play', () => {
+                    if (backgroundAudio) backgroundAudio.play();
+                });
+
+                video.addEventListener('pause', () => {
+                    if (backgroundAudio) backgroundAudio.pause();
+                });
+
+                video.addEventListener('seeked', () => {
+                    if (backgroundAudio) {
+                        // Sincronizar tiempo (loop si el audio es más corto)
+                        backgroundAudio.currentTime = video.currentTime % backgroundAudio.duration;
+                    }
+                });
+            }
+        });
+
+        // Control de volumen
+        document.getElementById('audioVolume').addEventListener('input', (e) => {
+            const volume = e.target.value / 100;
+            if (backgroundAudio) {
+                backgroundAudio.volume = volume;
+            }
+            document.getElementById('volumeValue').textContent = e.target.value + '%';
+        });
+
+        // Función para remover audio
+        function removeBackgroundAudio() {
+            if (backgroundAudio) {
+                backgroundAudio.pause();
+                backgroundAudio = null;
+            }
+            document.getElementById('audio-list').innerHTML = '';
+            document.getElementById('audio-controls').classList.add('d-none');
+        }
+    </script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>
